@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import (MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction, TemplateSendMessage, ButtonsTemplate, MessageAction)
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction, TemplateSendMessage, ButtonsTemplate)
 
 app = Flask(__name__)
 
@@ -88,3 +88,4 @@ def send_question(reply_token, user_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
