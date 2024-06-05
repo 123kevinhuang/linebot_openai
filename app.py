@@ -1,18 +1,17 @@
 import os
-import requests
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction,
-    TemplateSendMessage, ButtonsTemplate, MessageAction
+    TemplateSendMessage, ButtonsTemplate, MessageAction, QuickReply, QuickReplyButton
 )
 
 app = Flask(__name__)
 
 # 設置你的LINE BOT的Channel Access Token 和 Channel Secret
-line_bot_api = LineBotApi('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('1a1abae950e5754d3011ae1c24ce6650')
+line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
 # 理財測驗題目和答案
 questions = [
@@ -186,16 +185,13 @@ def send_question(reply_token, user_id):
 
 def ask_currency(reply_token, text, prefix):
     currencies = list(exchange_rates.keys())
-    currency_groups = [currencies[i:i + 4] for i in range(0, len(currencies), 4)]
+    actions = [QuickReplyButton(action=PostbackAction(label=currency, data=f"{prefix}={currency}")) for currency in currencies]
+    quick_reply = QuickReply(items=actions[:13])  # LINE quick reply 有 13 個按鈕限制
     
-    messages = []
-    for group in currency_groups:
-        actions = [PostbackAction(label=currency, data=f"{prefix}={currency}") for currency in group]
-        template = ButtonsTemplate(title=text, text="請選擇", actions=actions)
-        message = TemplateSendMessage(alt_text=text, template=template)
-        messages.append(message)
-
-    line_bot_api.reply_message(reply_token, messages)
+    line_bot_api.reply_message(
+        reply_token,
+        TextSendMessage(text=text, quick_reply=quick_reply)
+    )
 
 def show_main_menu(reply_token):
     buttons_template = ButtonsTemplate(
