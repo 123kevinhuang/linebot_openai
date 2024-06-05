@@ -32,28 +32,24 @@ questions = [
 user_scores = {}
 user_states = {}
 
-# 替換 'your_api_key_here' 為你的 ExchangeRate-API API 金鑰
-api_key = 'YOUR_API_KEY_HERE'
-
-def get_exchange_rate(from_currency, to_currency):
-    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{from_currency}"
-    response = requests.get(url)
-    data = response.json()
-    
-    if response.status_code != 200:
-        return None, f"Error fetching exchange rates: {data.get('error-type')}"
-    
-    rates = data['conversion_rates']
-    if to_currency not in rates:
-        return None, f"Currency {to_currency} not found in the exchange rate data."
-    
-    return rates[to_currency], None
+# 固定匯率數據
+exchange_rates = {
+    "USD": 1,
+    "TWD": 30,
+    "EUR": 0.85,
+    "JPY": 110,
+    "CNY": 6.5,
+    # 可以增加更多貨幣
+}
 
 def convert_currency(amount, from_currency, to_currency):
-    rate, error = get_exchange_rate(from_currency, to_currency)
-    if error:
-        return None, error
-    return amount * rate, None
+    if from_currency not in exchange_rates or to_currency not in exchange_rates:
+        return None, "Unsupported currency"
+    
+    from_rate = exchange_rates[from_currency]
+    to_rate = exchange_rates[to_currency]
+    converted_amount = amount * (to_rate / from_rate)
+    return converted_amount, None
 
 @app.route("/callback", methods=['POST'])
 def callback():
