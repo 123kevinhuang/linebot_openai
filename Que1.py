@@ -45,7 +45,7 @@ exchange_rates = {
 # 獲取中央銀行的匯率資訊
 def get_central_bank_exchange_rates():
     # 假設中央銀行提供的API是https://example.com/exchange_rates
-    response = requests.get("https://example.com/exchange_rates")
+    response = requests.get("https://cpx.cbc.gov.tw/API/DataAPI/Get?FileName=BP01D01")
     data = response.json()
     return data
 
