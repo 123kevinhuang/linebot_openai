@@ -1,32 +1,82 @@
-!pip install requests
+!pip install requests line-bot-sdk
+import os
 import requests
+from flask import Flask, request, abort
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
-def get_exchange_rate(api_key, from_currency, to_currency):
+app = Flask(__name__)
+
+# Replace 'your_channel_access_token' and 'your_channel_secret' with your actual Line Bot credentials
+line_bot_api = LineBotApi('your_channel_access_token')
+handler = WebhookHandler('your_channel_secret')
+
+# Replace 'your_api_key_here' with your actual API key from ExchangeRate-API
+api_key = 'your_api_key_here'
+
+def get_exchange_rate(from_currency, to_currency):
     url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{from_currency}"
     response = requests.get(url)
     data = response.json()
     
     if response.status_code != 200:
-        raise Exception(f"Error fetching exchange rates: {data.get('error-type')}")
+        return None, f"Error fetching exchange rates: {data.get('error-type')}"
     
     rates = data['conversion_rates']
     if to_currency not in rates:
-        raise Exception(f"Currency {to_currency} not found in the exchange rate data.")
+        return None, f"Currency {to_currency} not found in the exchange rate data."
     
-    return rates[to_currency]
+    return rates[to_currency], None
 
-def convert_currency(amount, from_currency, to_currency, api_key):
-    rate = get_exchange_rate(api_key, from_currency, to_currency)
-    return amount * rate
+def convert_currency(amount, from_currency, to_currency):
+    rate, error = get_exchange_rate(from_currency, to_currency)
+    if error:
+        return None, error
+    return amount * rate, None
 
-# Replace 'your_api_key_here' with your actual API key from ExchangeRate-API
-api_key = 'your_api_key_here'
-amount_in_twd = 100
-from_currency = 'TWD'
-to_currency = 'USD'
+@app.route("/callback", methods=['POST'])
+def callback():
+    # get X-Line-Signature header value
+    signature = request.headers['X-Line-Signature']
 
-try:
-    converted_amount = convert_currency(amount_in_twd, from_currency, to_currency, api_key)
-    print(f"{amount_in_twd} {from_currency} is equal to {converted_amount:.2f} {to_currency}")
-except Exception as e:
-    print(e)
+    # get request body as text
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+
+    # handle webhook body
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    try:
+        text = event.message.text.strip()
+        parts = text.split()
+        if len(parts) != 3:
+            raise ValueError("Invalid input format. Please use the format: amount from_currency to_currency")
+        
+        amount = float(parts[0])
+        from_currency = parts[1].upper()
+        to_currency = parts[2].upper()
+        
+        converted_amount, error = convert_currency(amount, from_currency, to_currency)
+        if error:
+            reply_text = error
+        else:
+            reply_text = f"{amount} {from_currency} is equal to {converted_amount:.2f} {to_currency}"
+    except Exception as e:
+        reply_text = str(e)
+    
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_text)
+    )
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
