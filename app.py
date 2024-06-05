@@ -5,7 +5,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction,
-    TemplateSendMessage, ButtonsTemplate, MessageAction
+    TemplateSendMessage, ButtonsTemplate, MessageAction, FlexSendMessage, BubbleContainer, BoxComponent, TextComponent, ButtonComponent, URIAction
 )
 
 app = Flask(__name__)
@@ -39,17 +39,13 @@ exchange_rates = {
     "EUR": 0.85,
     "JPY": 110,
     "CNY": 6.5,
-    # 可以增加更多貨幣
+    "HKD": 7.8,
+    "GBP": 0.75,
+    "AUD": 1.4,
+    "CAD": 1.25,
+    "SGD": 1.35,
+    # 增加更多貨幣
 }
-
-def convert_currency(amount, from_currency, to_currency):
-    if from_currency not in exchange_rates or to_currency not in exchange_rates:
-        return None, "Unsupported currency"
-    
-    from_rate = exchange_rates[from_currency]
-    to_rate = exchange_rates[to_currency]
-    converted_amount = amount * (to_rate / from_rate)
-    return converted_amount, None
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -140,7 +136,6 @@ def handle_postback(event):
             event.reply_token,
             TextSendMessage(text=reply_text)
         )
-
     elif user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
         return
@@ -190,6 +185,15 @@ def show_main_menu(reply_token):
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
     line_bot_api.reply_message(reply_token, message)
+
+def convert_currency(amount, from_currency, to_currency):
+    if from_currency not in exchange_rates or to_currency not in exchange_rates:
+        return None, "Unsupported currency"
+    
+    from_rate = exchange_rates[from_currency]
+    to_rate = exchange_rates[to_currency]
+    converted_amount = amount * (to_rate / from_rate)
+    return converted_amount, None
 
 if __name__ == "__main__":
     app.run(debug=True)
