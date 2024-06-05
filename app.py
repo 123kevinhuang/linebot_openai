@@ -185,11 +185,16 @@ def send_question(reply_token, user_id):
 
 def ask_currency(reply_token, text, prefix):
     currencies = list(exchange_rates.keys())
-    actions = [PostbackAction(label=currency, data=f"{prefix}={currency}") for currency in currencies[:4]]
-    template = ButtonsTemplate(title=text, text="請選擇", actions=actions)
-    message = TemplateSendMessage(alt_text=text, template=template)
+    currency_groups = [currencies[i:i + 4] for i in range(0, len(currencies), 4)]
+    
+    messages = []
+    for group in currency_groups:
+        actions = [PostbackAction(label=currency, data=f"{prefix}={currency}") for currency in group]
+        template = ButtonsTemplate(title=text, text="請選擇", actions=actions)
+        message = TemplateSendMessage(alt_text=text, template=template)
+        messages.append(message)
 
-    line_bot_api.reply_message(reply_token, message)
+    line_bot_api.reply_message(reply_token, messages)
 
 def show_main_menu(reply_token):
     buttons_template = ButtonsTemplate(
