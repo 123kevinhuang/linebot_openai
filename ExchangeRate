@@ -1,0 +1,32 @@
+!pip install requests
+import requests
+
+def get_exchange_rate(api_key, from_currency, to_currency):
+    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{from_currency}"
+    response = requests.get(url)
+    data = response.json()
+    
+    if response.status_code != 200:
+        raise Exception(f"Error fetching exchange rates: {data.get('error-type')}")
+    
+    rates = data['conversion_rates']
+    if to_currency not in rates:
+        raise Exception(f"Currency {to_currency} not found in the exchange rate data.")
+    
+    return rates[to_currency]
+
+def convert_currency(amount, from_currency, to_currency, api_key):
+    rate = get_exchange_rate(api_key, from_currency, to_currency)
+    return amount * rate
+
+# Replace 'your_api_key_here' with your actual API key from ExchangeRate-API
+api_key = 'your_api_key_here'
+amount_in_twd = 100
+from_currency = 'TWD'
+to_currency = 'USD'
+
+try:
+    converted_amount = convert_currency(amount_in_twd, from_currency, to_currency, api_key)
+    print(f"{amount_in_twd} {from_currency} is equal to {converted_amount:.2f} {to_currency}")
+except Exception as e:
+    print(e)
