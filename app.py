@@ -148,5 +148,12 @@ def show_main_menu(reply_token):
         title='主選單',
         text='請選擇功能',
         actions=[
-            MessageAction(label='理財測驗
+            MessageAction(label='理財測驗', text='理財測驗'),
+            MessageAction(label='匯率轉換', text='匯率轉換')
+        ]
+    )
+    message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
+    line_bot_api.reply_message(reply_token, message)
 
+if __name__ == "__main__":
+    app.run(debug=True)
