@@ -4,7 +4,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction,
-    TemplateSendMessage, ButtonsTemplate, MessageAction, QuickReply, QuickReplyButton
+    QuickReply, QuickReplyButton, MessageAction
 )
 
 app = Flask(__name__)
@@ -177,11 +177,13 @@ def send_question(reply_token, user_id):
     question = questions[question_index]["question"]
     options = questions[question_index]["options"]
 
-    actions = [PostbackAction(label=option, data=option[0]) for option in options]
-    template = ButtonsTemplate(title=f"問題 {question_index + 1}", text=question, actions=actions)
-    message = TemplateSendMessage(alt_text=question, template=template)
+    actions = [QuickReplyButton(action=PostbackAction(label=option, data=option[0])) for option in options]
+    quick_reply = QuickReply(items=actions[:4])  # LINE quick reply 的按鈕限制
 
-    line_bot_api.reply_message(reply_token, message)
+    line_bot_api.reply_message(
+        reply_token,
+        TextSendMessage(text=question, quick_reply=quick_reply)
+    )
 
 def ask_currency(reply_token, text, prefix):
     currencies = list(exchange_rates.keys())
