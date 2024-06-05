@@ -74,28 +74,37 @@ def handle_message(event):
         user_states[user_id] = "quiz"
         send_question(event.reply_token, user_id)
     elif text == "匯率轉換":
-        user_states[user_id] = "currency_conversion"
+        user_states[user_id] = "currency_conversion_amount"
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="請輸入金額和貨幣，例如：100 TWD USD")
+            TextSendMessage(text="請輸入金額，例如：100")
         )
-    elif user_states.get(user_id) == "currency_conversion":
+    elif user_states.get(user_id) == "currency_conversion_amount":
         try:
-            parts = text.split()
-            if len(parts) != 3:
-                raise ValueError("格式錯誤。請使用格式：金額 來源貨幣 目標貨幣，例如：100 TWD USD")
-
-            amount = float(parts[0])
-            from_currency = parts[1].upper()
-            to_currency = parts[2].upper()
-
-            converted_amount, error = convert_currency(amount, from_currency, to_currency)
-            if error:
-                reply_text = error
-            else:
-                reply_text = f"{amount} {from_currency} is equal to {converted_amount:.2f} {to_currency}"
-        except Exception as e:
-            reply_text = str(e)
+            amount = float(text)
+            user_scores[user_id] = {"amount": amount}
+            user_states[user_id] = "currency_conversion_from"
+            ask_currency(event.reply_token, "請選擇來源貨幣", "from_currency")
+        except ValueError:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text="請輸入正確的金額，例如：100")
+            )
+    elif user_states.get(user_id) == "currency_conversion_from":
+        user_scores[user_id]["from_currency"] = text
+        user_states[user_id] = "currency_conversion_to"
+        ask_currency(event.reply_token, "請選擇目標貨幣", "to_currency")
+    elif user_states.get(user_id) == "currency_conversion_to":
+        user_scores[user_id]["to_currency"] = text
+        amount = user_scores[user_id]["amount"]
+        from_currency = user_scores[user_id]["from_currency"]
+        to_currency = text
+        
+        converted_amount, error = convert_currency(amount, from_currency, to_currency)
+        if error:
+            reply_text = error
+        else:
+            reply_text = f"{amount} {from_currency} is equal to {converted_amount:.2f} {to_currency}"
 
         line_bot_api.reply_message(
             event.reply_token,
@@ -109,7 +118,30 @@ def handle_postback(event):
     user_id = event.source.user_id
     postback_data = event.postback.data
 
-    if user_id not in user_scores:
+    if postback_data.startswith("from_currency"):
+        currency = postback_data.split("=")[1]
+        user_scores[user_id]["from_currency"] = currency
+        user_states[user_id] = "currency_conversion_to"
+        ask_currency(event.reply_token, "請選擇目標貨幣", "to_currency")
+    elif postback_data.startswith("to_currency"):
+        currency = postback_data.split("=")[1]
+        user_scores[user_id]["to_currency"] = currency
+        amount = user_scores[user_id]["amount"]
+        from_currency = user_scores[user_id]["from_currency"]
+        to_currency = currency
+        
+        converted_amount, error = convert_currency(amount, from_currency, to_currency)
+        if error:
+            reply_text = error
+        else:
+            reply_text = f"{amount} {from_currency} is equal to {converted_amount:.2f} {to_currency}"
+
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_text)
+        )
+
+    elif user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
         return
 
@@ -136,6 +168,14 @@ def send_question(reply_token, user_id):
     actions = [PostbackAction(label=option, data=option[0]) for option in options]
     template = ButtonsTemplate(title=f"問題 {question_index + 1}", text=question, actions=actions)
     message = TemplateSendMessage(alt_text=question, template=template)
+
+    line_bot_api.reply_message(reply_token, message)
+
+def ask_currency(reply_token, text, prefix):
+    currencies = list(exchange_rates.keys())
+    actions = [PostbackAction(label=currency, data=f"{prefix}={currency}") for currency in currencies[:4]]
+    template = ButtonsTemplate(title=text, text="請選擇", actions=actions)
+    message = TemplateSendMessage(alt_text=text, template=template)
 
     line_bot_api.reply_message(reply_token, message)
 
