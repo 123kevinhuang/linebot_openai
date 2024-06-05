@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 # Line Bot 的 Channel Access Token 和 Channel Secret
-LINE_CHANNEL_ACCESS_TOKEN = 'YOUR_CHANNEL_ACCESS_TOKEN'
-LINE_CHANNEL_SECRET = 'YOUR_CHANNEL_SECRET'
+LINE_CHANNEL_ACCESS_TOKEN = '+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU='
+LINE_CHANNEL_SECRET = '1a1abae950e5754d3011ae1c24ce6650'
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -50,7 +50,7 @@ def get_bank_c_exchange_rate():
     }
     return rates
 
-@app.route("/callback", methods=['POST'])
+@app.route("/", methods=['POST'])
 def callback():
     # 獲取 X-Line-Signature header 值
     signature = request.headers['X-Line-Signature']
