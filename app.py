@@ -51,12 +51,6 @@ def convert_currency(amount, from_currency, to_currency):
     converted_amount = amount * (to_rate / from_rate)
     return converted_amount, None
 
-def get_central_bank_exchange_rates():
-    # 假設中央銀行提供的API是https://example.com/exchange_rates
-    response = requests.get("https://cpx.cbc.gov.tw/API/DataAPI/Get?FileName=BP01D01")
-    data = response.json()
-    return data
-
 @app.route("/callback", methods=['POST'])
 def callback():
     # 獲取 LINE 平台傳來的請求
@@ -84,15 +78,6 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text="請輸入金額，例如：100")
-        )
-    elif text == "中央銀行匯率":
-        exchange_rates_data = get_central_bank_exchange_rates()
-        reply_text = "中央銀行匯率資訊：\n"
-        for currency, rate in exchange_rates_data.items():
-            reply_text += f"{currency}: {rate}\n"
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_text)
         )
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
@@ -200,8 +185,7 @@ def show_main_menu(reply_token):
         text='請選擇功能',
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
-            MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='中央銀行匯率', text='中央銀行匯率')
+            MessageAction(label='匯率轉換', text='匯率轉換')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
