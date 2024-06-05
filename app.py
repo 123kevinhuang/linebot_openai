@@ -110,6 +110,9 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=reply_text)
         )
+        # 重置狀態以便下次重新開始匯率轉換
+        user_states[user_id] = None
+        user_scores[user_id] = {}
     else:
         show_main_menu(event.reply_token)
 
@@ -140,6 +143,9 @@ def handle_postback(event):
             event.reply_token,
             TextSendMessage(text=reply_text)
         )
+        # 重置狀態以便下次重新開始匯率轉換
+        user_states[user_id] = None
+        user_scores[user_id] = {}
 
     elif user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
