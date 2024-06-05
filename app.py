@@ -10,8 +10,8 @@ from linebot.models import (
 app = Flask(__name__)
 
 # 設置你的LINE BOT的Channel Access Token 和 Channel Secret
-line_bot_api = LineBotApi('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('1a1abae950e5754d3011ae1c24ce6650')
+line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
 # 理財測驗題目和答案
 questions = [
@@ -209,3 +209,4 @@ def show_main_menu(reply_token):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
