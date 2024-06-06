@@ -1,5 +1,7 @@
 Flask
 line-bot-sdk
 gunicorn
+beautifulsoup4
+requests
 
 
