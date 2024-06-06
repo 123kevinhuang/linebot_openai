@@ -15,9 +15,6 @@ app = Flask(__name__)
 line_channel_access_token = os.getenv('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
 line_channel_secret = os.getenv('1a1abae950e5754d3011ae1c24ce6650')
 
-if not line_channel_access_token or not line_channel_secret:
-    raise ValueError('LINE_CHANNEL_ACCESS_TOKEN and LINE_CHANNEL_SECRET must be set')
-
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
 
