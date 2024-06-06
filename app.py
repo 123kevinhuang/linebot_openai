@@ -1,6 +1,3 @@
-!pip install beautifulsoup4
-!pip install requests
-
 import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -9,14 +6,12 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction,
     QuickReply, QuickReplyButton, MessageAction, ButtonsTemplate, TemplateSendMessage
 )
-import requests
-from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 # 設置你的LINE BOT的Channel Access Token 和 Channel Secret
-line_bot_api = LineBotApi(os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
-handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
+line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
 # 理財測驗題目和答案
 questions = [
@@ -61,28 +56,6 @@ def convert_currency(amount, from_currency, to_currency):
     to_rate = exchange_rates[to_currency]
     converted_amount = amount * (to_rate / from_rate)
     return converted_amount, None
-
-def get_financial_news():
-    url = 'https://finance.yahoo.com/'
-    financial_keywords = ['finance', 'financial', 'market', 'stock', 'economy', 'investment', 'money', 'business']
-
-    response = requests.get(url)
-    if response.status_code != 200:
-        return None
-
-    soup = BeautifulSoup(response.content, 'html.parser')
-    links = soup.find_all('a')
-
-    news_links = []
-    for link in links:
-        href = link.get('href')
-        title = link.get_text()
-        
-        if any(keyword in title.lower() for keyword in financial_keywords):
-            if href:
-                news_links.append(href)
-    
-    return news_links[:5]
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -146,19 +119,6 @@ def handle_message(event):
         # 重置狀態以便下次重新開始匯率轉換
         user_states[user_id] = None
         user_scores[user_id] = {}
-    elif text == "財經新聞":
-        news_links = get_financial_news()
-        if news_links:
-            news_message = "\n".join(news_links)
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=f"最新的財經新聞：\n{news_message}")
-            )
-        else:
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text="抱歉，無法獲取財經新聞。")
-            )
     else:
         show_main_menu(event.reply_token)
 
@@ -207,10 +167,12 @@ def handle_postback(event):
     user_scores[user_id]["current_question"] += 1
     if user_scores[user_id]["current_question"] < len(questions):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_text))
-        send_question(event.reply_token, user_id)
+        send_question(event.reply_token, user_id)  # 確保發送下一個問題
     else:
         final_score = user_scores[user_id]["score"]
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
+        user_states[user_id] = None
+        user_scores[user_id] = {}
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
@@ -241,8 +203,7 @@ def show_main_menu(reply_token):
         text='請選擇功能',
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
-            MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='財經新聞', text='財經新聞')
+            MessageAction(label='匯率轉換', text='匯率轉換')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
