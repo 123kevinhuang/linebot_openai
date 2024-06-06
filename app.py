@@ -7,6 +7,7 @@ from linebot.models import (
     QuickReply, QuickReplyButton, MessageAction, ButtonsTemplate, TemplateSendMessage
 )
 import requests
+import yfinance as yf
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
@@ -112,6 +113,10 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="請輸入金額，例如：100")
         )
+    elif text == "股票查詢":
+        user_states[user_id] = "stock_selection"
+        ask_stock(event.reply_token)
+        
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
             amount = float(text)
@@ -234,7 +239,33 @@ def ask_currency(reply_token, text, prefix):
         reply_token,
         TextSendMessage(text=text, quick_reply=quick_reply)
     )
+    
+def ask_stock(reply_token):
+    quick_reply_buttons = [
+        QuickReplyButton(action=MessageAction(label="Apple", text="AAPL")),
+        QuickReplyButton(action=MessageAction(label="Google", text="GOOGL")),
+        QuickReplyButton(action=MessageAction(label="Microsoft", text="MSFT")),
+        # 你可以添加更多的選項
+    ]
+    quick_reply = QuickReply(items=quick_reply_buttons)
+    line_bot_api.reply_message(
+        reply_token,
+        TextSendMessage(text="請選擇或輸入股票代碼，例如：AAPL", quick_reply=quick_reply)
+    )
 
+def get_stock_info(stock_code):
+    stock = yf.Ticker(stock_code)
+    info = stock.info
+    
+    return (f"股票: {info.get('shortName', 'N/A')} ({stock_code})\n"
+            f"市場價格: {info.get('regularMarketPrice', 'N/A')}\n"
+            f"市值: {info.get('marketCap', 'N/A')}\n"
+            f"市盈率: {info.get('trailingPE', 'N/A')}\n"
+            f"股息率: {info.get('dividendYield', 'N/A')}\n"
+            f"52周高點: {info.get('fiftyTwoWeekHigh', 'N/A')}\n"
+            f"52周低點: {info.get('fiftyTwoWeekLow', 'N/A')}")
+
+        
 def show_main_menu(reply_token):
     buttons_template = ButtonsTemplate(
         title='主選單',
@@ -242,7 +273,8 @@ def show_main_menu(reply_token):
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
             MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='財經新聞', text='財經新聞')
+            MessageAction(label='財經新聞', text='財經新聞'),
+             MessageAction(label='股票查詢', text='股票查詢')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
