@@ -1,5 +1,5 @@
-pip install beautifulsoup4
-pip install requests
+!pip install beautifulsoup4
+!pip install requests
 
 import os
 from flask import Flask, request, abort
