@@ -198,18 +198,9 @@ def handle_postback(event):
         user_states[user_id] = None
         user_scores[user_id] = {}
 
-    elif user_states.get(user_id) == "stock_selection":
-        stock_info = get_stock_info(text)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=stock_info))
-        # 重置狀態以便下次重新開始股票查詢
-        user_states[user_id] = None
-    else:
-        show_main_menu(event.reply_token)
-
     elif user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
         return
-
     question_index = user_scores[user_id]["current_question"]
     if postback_data == questions[question_index]["answer"]:
         user_scores[user_id]["score"] += 1
@@ -224,6 +215,14 @@ def handle_postback(event):
     else:
         final_score = user_scores[user_id]["score"]
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
+   
+    elif user_states.get(user_id) == "stock_selection":
+        stock_info = get_stock_info(text)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=stock_info))
+        # 重置狀態以便下次重新開始股票查詢
+        user_states[user_id] = None
+    else:
+        show_main_menu(event.reply_token)
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
