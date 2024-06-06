@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 # 設置你的LINE BOT的Channel Access Token 和 Channel Secret
-line_channel_access_token = os.getenv('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-line_channel_secret = os.getenv('1a1abae950e5754d3011ae1c24ce6650')
+line_channel_access_token = os.getenv('CHANNEL_ACCESS_TOKEN')
+line_channel_secret = os.getenv('CHANNEL_SECRET')
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
