@@ -1,3 +1,6 @@
+pip install beautifulsoup4
+pip install requests
+
 import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
