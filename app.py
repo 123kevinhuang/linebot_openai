@@ -12,8 +12,14 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 # 設置你的LINE BOT的Channel Access Token 和 Channel Secret
-line_bot_api = LineBotApi(os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
-handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
+line_channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
+line_channel_secret = os.getenv('LINE_CHANNEL_SECRET')
+
+if not line_channel_access_token or not line_channel_secret:
+    raise ValueError('LINE_CHANNEL_ACCESS_TOKEN and LINE_CHANNEL_SECRET must be set')
+
+line_bot_api = LineBotApi(line_channel_access_token)
+handler = WebhookHandler(line_channel_secret)
 
 # 理財測驗題目和答案
 questions = [
