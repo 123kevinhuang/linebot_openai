@@ -1,34 +1,29 @@
 
-pip install matplotlib
 
 
-elif text == "股票查詢":
-    user_states[user_id] = "stock_selection"
-    ask_stock(event.reply_token)
+!pip install yfinance
+import yfinance as yf
+import pandas as pd
 
-def ask_stock(reply_token):
-    # 提供一組預定義的股票代碼
-    stock_codes = ["AAPL", "GOOGL", "MSFT", "AMZN", "FB"]
-    actions = [MessageAction(label=code, text=code) for code in stock_codes]
-    quick_reply = QuickReply(items=actions)
+def get_stock_info(stock_code):
+    # 獲取股票資料
+    stock = yf.Ticker(stock_code)
 
-    line_bot_api.reply_message(
-        reply_token,
-        TextSendMessage(text="請選擇要查詢的股票代碼或直接輸入股票代碼。", quick_reply=quick_reply)
-    )
-elif user_states.get(user_id) == "stock_selection":
-    # 用戶發送了股票代碼
-    stock_code = text.upper()  # 將股票代碼轉換為大寫
-    stock_info = get_stock_info(stock_code)
-    if stock_info:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=stock_info)
-        )
-    else:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=f"抱歉，無法獲取股票代碼 {stock_code} 的資訊。")
-        )
-    # 清除用戶的狀態
-    user_states[user_id] = None
+    # 獲取基本資訊
+    info = stock.info
+
+    # 打印基本資訊
+    print(f"\n股票: {info.get('shortName', 'N/A')} ({stock_code})")
+    print(f"市場價格: {info.get('regularMarketPrice', 'N/A')}")
+    print(f"市值: {info.get('marketCap', 'N/A')}")
+    print(f"市盈率: {info.get('trailingPE', 'N/A')}")
+    print(f"股息率: {info.get('dividendYield', 'N/A')}")
+    print(f"52周高點: {info.get('fiftyTwoWeekHigh', 'N/A')}")
+    print(f"52周低點: {info.get('fiftyTwoWeekLow', 'N/A')}")
+
+    # 獲取歷史市場數據
+    hist = stock.history(period="1y")
+
+    # 顯示最近的五條歷史市場數據
+    print("\n最近的五條歷史市場數據：")
+    print(hist.tail())
