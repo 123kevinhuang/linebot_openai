@@ -1,6 +1,7 @@
 elif text == "股票查詢":
     user_states[user_id] = "stock_selection"
     ask_stock(event.reply_token)
+
 def ask_stock(reply_token):
     # 提供一組預定義的股票代碼
     stock_codes = ["AAPL", "GOOGL", "MSFT", "AMZN", "FB"]
