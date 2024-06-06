@@ -1,3 +1,7 @@
+
+pip install matplotlib
+
+
 elif text == "股票查詢":
     user_states[user_id] = "stock_selection"
     ask_stock(event.reply_token)
