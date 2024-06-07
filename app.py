@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 # Set your LINE BOT Channel Access Token and Channel Secret
 line_channel_access_token = os.getenv('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-line_channel_secret = os.getenv('1a1abae950e5754d3011ae1c24ce6650')
+line_channel_secret = os.getenv(1a1abae950e5754d3011ae1c24ce6650')
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
@@ -153,7 +153,7 @@ def handle_message(event):
         except ValueError:
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text="請輸入正確的金額，例如：100")
+                TextSendMessage(text="請輸入有效的金額，例如：100")
             )
     elif user_states.get(user_id) == "currency_conversion_from":
         user_scores[user_id]["from_currency"] = text
