@@ -116,6 +116,28 @@ def handle_message(event):
     elif text == "股票查詢":
         user_states[user_id] = "stock_selection"
         ask_stock(event.reply_token)
+    elif text == "股票資訊":
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text="請輸入股票代碼，例如：AAPL")
+    )
+    user_states[user_id] = "stock_info"
+    elif user_states.get(user_id) == "stock_info":
+        try:
+            stock_info = get_stock_info(text)
+            reply_message = (f"股票名稱: {stock_info['name']}\n"
+                          f"市場: {stock_info['market']}\n"
+                          f"行業: {stock_info['industry']}\n"
+                          f"市值: {stock_info['market_cap']}\n"
+                          f"股息率: {stock_info['dividend_yield']}")
+        except Exception as e:
+            reply_message = f"獲取股票資訊時出錯: {e}"
+    
+        line_bot_api.reply_message(
+           event.reply_token,
+           TextSendMessage(text=reply_message)
+        )
+        user_states[user_id] = None
         
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
@@ -253,18 +275,6 @@ def ask_stock(reply_token):
         TextSendMessage(text="請選擇或輸入股票代碼，例如：AAPL", quick_reply=quick_reply)
     )
 
-def handle_message(event):
-    ticker = event.message.text
-    try:
-        stock_info = get_stock_info(ticker)
-        reply_message = f"股票名稱: {stock_info['name']}\n市場: {stock_info['market']}\n行業: {stock_info['industry']}\n市值: {stock_info['market_cap']}\n股息率: {stock_info['dividend_yield']}"
-    except Exception as e:
-        reply_message = f"獲取股票資訊時出錯: {e}"
-    
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_message)
-    )
 
 def get_stock_info(ticker_symbol):
     stock = yf.Ticker(ticker_symbol)
