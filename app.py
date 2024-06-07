@@ -117,11 +117,11 @@ def handle_message(event):
         user_states[user_id] = "stock_selection"
         ask_stock(event.reply_token)
     elif text == "股票資訊":
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text="請輸入股票代碼，例如：AAPL")
-    )
-    user_states[user_id] = "stock_info"
+       line_bot_api.reply_message(
+           event.reply_token,
+           TextSendMessage(text="請輸入股票代碼，例如：AAPL")
+       )
+       user_states[user_id] = "stock_info"
     elif user_states.get(user_id) == "stock_info":
         try:
             stock_info = get_stock_info(text)
