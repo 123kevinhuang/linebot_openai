@@ -14,23 +14,23 @@ app = Flask(__name__)
 
 # Set your LINE BOT Channel Access Token and Channel Secret
 line_channel_access_token = os.getenv('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-line_channel_secret = os.getenv(1a1abae950e5754d3011ae1c24ce6650')
+line_channel_secret = os.getenv('1a1abae950e5754d3011ae1c24ce6650')
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
 
 # Finance quiz questions and answers
 questions = [
-    {"question": "1. 股票市場中，代表股價指數的英文縮寫是什麼？", "options": ["A) ROI", "B) GDP", "C) EPS", "D) Index"], "answer": "D", "explanation": "股價指數的英文縮寫是 Index。"},
-    {"question": "2. 什麼是ETF？", "options": ["A) Exchange Traded Fund", "B) Electronic Transfer Fund", "C) Equity Traded Fund", "D) Equity Transfer Fund"], "answer": "A", "explanation": "ETF 是指 Exchange Traded Fund，即交易所交易基金。"},
-    {"question": "3. 債券的價格和利率之間的關係是？", "options": ["A) 正相關", "B) 負相關", "C) 無關", "D) 同步變動"], "answer": "B", "explanation": "債券的價格和利率之間是負相關的關係。"},
-    {"question": "4. 何種保險主要提供疾病或意外事故的醫療費用保障？", "options": ["A) 壽險", "B) 健康險", "C) 車險", "D) 火險"], "answer": "B", "explanation": "健康險主要提供疾病或意外事故的醫療費用保障。"},
-    {"question": "5. 以下哪一項不是金融市場的主要功能？", "options": ["A) 資金配置", "B) 風險管理", "C) 資訊收集", "D) 商品生產"], "answer": "D", "explanation": "金融市場的主要功能不包括商品生產。"},
-    {"question": "6. 通貨膨脹對購買力的影響是？", "options": ["A) 增加", "B) 減少", "C) 不變", "D) 沒有影響"], "answer": "B", "explanation": "通貨膨脹會導致購買力的減少。"},
-    {"question": "7. 什麼是IPO？", "options": ["A) Initial Private Offering", "B) Initial Public Offering", "C) International Public Offering", "D) International Private Offering"], "answer": "B", "explanation": "IPO 是指 Initial Public Offering，即首次公開募股。"},
-    {"question": "8. 定期存款的特點是？", "options": ["A) 高流動性", "B) 固定利率", "C) 低風險", "D) 高風險"], "answer": "B", "explanation": "定期存款的特點是固定利率。"},
-    {"question": "9. 分散投資的主要目的是什麼？", "options": ["A) 增加收益", "B) 降低風險", "C) 節約成本", "D) 提高流動性"], "answer": "B", "explanation": "分散投資的主要目的是降低風險。"},
-    {"question": "10. 什麼是財務報表中的資產負債表？", "options": ["A) 顯示公司的收益和支出", "B) 顯示公司的現金流量", "C) 顯示公司的財務狀況", "D) 顯示公司的所有者權益"], "answer": "C", "explanation": "資產負債表顯示公司的財務狀況。"}
+    {"question": "1. 股票市場中，代表股價指數的英文縮寫是什麼？", "options": ["A) ROI", "B) GDP", "C) EPS", "D) Index"], "answer": "D"},
+    {"question": "2. 什麼是ETF？", "options": ["A) Exchange Traded Fund", "B) Electronic Transfer Fund", "C) Equity Traded Fund", "D) Equity Transfer Fund"], "answer": "A"},
+    {"question": "3. 債券的價格和利率之間的關係是？", "options": ["A) 正相關", "B) 負相關", "C) 無關", "D) 同步變動"], "answer": "B"},
+    {"question": "4. 何種保險主要提供疾病或意外事故的醫療費用保障？", "options": ["A) 壽險", "B) 健康險", "C) 車險", "D) 火險"], "answer": "B"},
+    {"question": "5. 以下哪一項不是金融市場的主要功能？", "options": ["A) 資金配置", "B) 風險管理", "C) 資訊收集", "D) 商品生產"], "answer": "D"},
+    {"question": "6. 通貨膨脹對購買力的影響是？", "options": ["A) 增加", "B) 減少", "C) 不變", "D) 沒有影響"], "answer": "B"},
+    {"question": "7. 什麼是IPO？", "options": ["A) Initial Private Offering", "B) Initial Public Offering", "C) International Public Offering", "D) International Private Offering"], "answer": "B"},
+    {"question": "8. 定期存款的特點是？", "options": ["A) 高流動性", "B) 固定利率", "C) 低風險", "D) 高風險"], "answer": "B"},
+    {"question": "9. 分散投資的主要目的是什麼？", "options": ["A) 增加收益", "B) 降低風險", "C) 節約成本", "D) 提高流動性"], "answer": "B"},
+    {"question": "10. 什麼是財務報表中的資產負債表？", "options": ["A) 顯示公司的收益和支出", "B) 顯示公司的現金流量", "C) 顯示公司的財務狀況", "D) 顯示公司的所有者權益"], "answer": "C"},
 ]
 
 # User score and state records
@@ -104,14 +104,9 @@ def handle_message(event):
     text = event.message.text.strip()
 
     if text == "理財測驗":
-        show_quiz_menu(event.reply_token)
-    elif text in ["第一題", "第二題", "第三題", "第四題", "第五題", "第六題", "第七題", "第八題", "第九題", "第十題"]:
-        question_index = int(text[1:-1]) - 1
-        user_states[user_id] = f"quiz_{question_index}"
-        send_question(event.reply_token, question_index)
-    elif user_states.get(user_id, "").startswith("quiz_"):
-        question_index = int(user_states[user_id].split("_")[1])
-        handle_quiz_answer(event.reply_token, user_id, question_index, text)
+        user_scores[user_id] = {"score": 0, "current_question": 0}
+        user_states[user_id] = "quiz"
+        send_question(event.reply_token, user_id)
     elif text == "匯率轉換":
         user_states[user_id] = "currency_conversion_amount"
         line_bot_api.reply_message(
@@ -153,7 +148,7 @@ def handle_message(event):
         except ValueError:
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text="請輸入有效的金額，例如：100")
+                TextSendMessage(text="請輸入正確的金額，例如：100")
             )
     elif user_states.get(user_id) == "currency_conversion_from":
         user_scores[user_id]["from_currency"] = text
@@ -243,7 +238,8 @@ def handle_postback(event):
         final_score = user_scores[user_id]["score"]
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
 
-def send_question(reply_token, question_index):
+def send_question(reply_token, user_id):
+    question_index = user_scores[user_id]["current_question"]
     question = questions[question_index]["question"]
     options = questions[question_index]["options"]
 
@@ -253,25 +249,6 @@ def send_question(reply_token, question_index):
     line_bot_api.reply_message(
         reply_token,
         TextSendMessage(text=question, quick_reply=quick_reply)
-    )
-
-def handle_quiz_answer(reply_token, user_id, question_index, answer):
-    if answer[0] == questions[question_index]["answer"]:
-        response_text = "答對了！"
-    else:
-        correct_answer = questions[question_index]["answer"]
-        explanation = questions[question_index]["explanation"]
-        response_text = f"答錯了，正確答案是：{correct_answer}\n{explanation}"
-    line_bot_api.reply_message(reply_token, TextSendMessage(text=response_text))
-
-def show_quiz_menu(reply_token):
-    quick_reply_buttons = [
-        QuickReplyButton(action=MessageAction(label=f"第{index + 1}題", text=f"第{index + 1}題")) for index in range(len(questions))
-    ]
-    quick_reply = QuickReply(items=quick_reply_buttons)
-    line_bot_api.reply_message(
-        reply_token,
-        TextSendMessage(text="請選擇問題：", quick_reply=quick_reply)
     )
 
 def ask_currency(reply_token, text, prefix):
