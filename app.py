@@ -216,13 +216,6 @@ def handle_postback(event):
         final_score = user_scores[user_id]["score"]
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
    
-    elif user_states.get(user_id) == "stock_selection":
-        stock_info = get_stock_info(text)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=stock_info))
-        # 重置狀態以便下次重新開始股票查詢
-        user_states[user_id] = None
-    else:
-        show_main_menu(event.reply_token)
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
