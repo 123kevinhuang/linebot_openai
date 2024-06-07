@@ -260,17 +260,31 @@ def ask_stock(reply_token):
         TextSendMessage(text="請選擇或輸入股票代碼，例如：AAPL", quick_reply=quick_reply)
     )
 
-def get_stock_info(stock_code):
-    stock = yf.Ticker(stock_code)
-    info = stock.info
+def handle_message(event):
+    ticker = event.message.text
+    try:
+        stock_info = get_stock_info(ticker)
+        reply_message = f"股票名稱: {stock_info['name']}\n市場: {stock_info['market']}\n行業: {stock_info['industry']}\n市值: {stock_info['market_cap']}\n股息率: {stock_info['dividend_yield']}"
+    except Exception as e:
+        reply_message = f"獲取股票資訊時出錯: {e}"
     
-    return (f"股票: {info.get('shortName', 'N/A')} ({stock_code})\n"
-            f"市場價格: {info.get('regularMarketPrice', 'N/A')}\n"
-            f"市值: {info.get('marketCap', 'N/A')}\n"
-            f"市盈率: {info.get('trailingPE', 'N/A')}\n"
-            f"股息率: {info.get('dividendYield', 'N/A')}\n"
-            f"52周高點: {info.get('fiftyTwoWeekHigh', 'N/A')}\n"
-            f"52周低點: {info.get('fiftyTwoWeekLow', 'N/A')}")
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_message)
+    )
+
+def get_stock_info(ticker_symbol):
+    stock = yf.Ticker(ticker_symbol)
+    info = stock.info
+    stock_info = {
+        'name': info.get('longName', 'N/A'),
+        'market': info.get('market', 'N/A'),
+        'industry': info.get('industry', 'N/A'),
+        'market_cap': info.get('marketCap', 'N/A'),
+        'dividend_yield': info.get('dividendYield', 'N/A')
+    }
+    return stock_info
+
 
         
 def show_main_menu(reply_token):
