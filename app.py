@@ -196,49 +196,33 @@ def handle_postback(event):
     user_id = event.source.user_id
     postback_data = event.postback.data
 
-    if postback_data.startswith("from_currency"):
-        currency = postback_data.split("=")[1]
-        user_scores[user_id]["from_currency"] = currency
-        user_states[user_id] = "currency_conversion_to"
-        ask_currency(event.reply_token, "請選擇目標貨幣", "to_currency")
-    elif postback_data.startswith("to_currency"):
-        currency = postback_data.split("=")[1]
-        user_scores[user_id]["to_currency"] = currency
-        amount = user_scores[user_id]["amount"]
-        from_currency = user_scores[user_id]["from_currency"]
-        to_currency = currency
-        
-        converted_amount, error = convert_currency(amount, from_currency, to_currency)
-        if error:
-            reply_text = error
-        else:
-            reply_text = f"{amount} {from_currency} is equal to {converted_amount:.2f} {to_currency}"
-
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_text)
-        )
-        # 重置狀態以便下次重新開始匯率轉換
-        user_states[user_id] = None
-        user_scores[user_id] = {}
-
-    elif user_id not in user_scores:
+    if user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
         return
 
     question_index = user_scores[user_id]["current_question"]
-    if postback_data == questions[question_index]["answer"]:
-        user_scores[user_id]["score"] += 1
-        response_text = "答對了！"
-    else:
-        response_text = f"答錯了，正確答案是：{questions[question_index]['answer']}"
 
-    user_scores[user_id]["current_question"] += 1
-    if user_scores[user_id]["current_question"] < len(questions):
-        send_question(event.reply_token, user_id)
+    # 確保索引有效
+    if question_index < len(questions):
+        if postback_data == questions[question_index]["answer"]:
+            user_scores[user_id]["score"] += 1
+            response_text = "答對了！"
+        else:
+            response_text = f"答錯了，正確答案是：{questions[question_index]['answer']}"
+
+        user_scores[user_id]["current_question"] += 1
+        if user_scores[user_id]["current_question"] < len(questions):
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_text))
+            send_question(event.reply_token, user_id)
+        else:
+            final_score = user_scores[user_id]["score"]
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"測驗結束！你總共答對了 {final_score} 題。"))
+            user_states[user_id] = None  # 重置狀態
+            user_scores[user_id] = {}    # 重置分數
     else:
-        final_score = user_scores[user_id]["score"]
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"測驗結束！你總共答對了 {final_score} 題。"))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="無效的問題索引。請輸入 '理財測驗' 來重新開始測驗。"))
+        user_states[user_id] = None  # 重置狀態
+        user_scores[user_id] = {}    # 重置分數
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
