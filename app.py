@@ -7,19 +7,18 @@ from linebot.models import (
     QuickReply, QuickReplyButton, MessageAction, ButtonsTemplate, TemplateSendMessage
 )
 import requests
-import yfinance as yf
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-# Set your LINE BOT Channel Access Token and Channel Secret
-line_channel_access_token = os.getenv('+m9MsMlBbX6xUkenrdglsJ4dui9Iv1SKwaAQQSBqHA2yGAibmFDqR6Dh6utNRj/QDJ6vRZe3sFN2SEHDLzC4d/1v+ieyXfS3rMLXNMkay13yBp1A8waU8PkCaPgpWmL5XZ56NDsilEo8NXO4NE9EFwdB04t89/1O/w1cDnyilFU=')
-line_channel_secret = os.getenv('1a1abae950e5754d3011ae1c24ce6650')
+# 設置你的LINE BOT的Channel Access Token 和 Channel Secret
+line_channel_access_token = os.getenv('CHANNEL_ACCESS_TOKEN')
+line_channel_secret = os.getenv('CHANNEL_SECRET')
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
 
-# Finance quiz questions and answers
+# 理財測驗題目和答案
 questions = [
     {"question": "1. 股票市場中，代表股價指數的英文縮寫是什麼？", "options": ["A) ROI", "B) GDP", "C) EPS", "D) Index"], "answer": "D"},
     {"question": "2. 什麼是ETF？", "options": ["A) Exchange Traded Fund", "B) Electronic Transfer Fund", "C) Equity Traded Fund", "D) Equity Transfer Fund"], "answer": "A"},
@@ -33,11 +32,11 @@ questions = [
     {"question": "10. 什麼是財務報表中的資產負債表？", "options": ["A) 顯示公司的收益和支出", "B) 顯示公司的現金流量", "C) 顯示公司的財務狀況", "D) 顯示公司的所有者權益"], "answer": "C"},
 ]
 
-# User score and state records
+# 用戶回答情況記錄
 user_scores = {}
 user_states = {}
 
-# Exchange rates
+# 固定匯率數據
 exchange_rates = {
     "USD美金": 1,
     "TWD台幣": 30,
@@ -51,7 +50,7 @@ exchange_rates = {
     "CAD加拿大元": 1.36,
     "VND越南盾": 25415,
     "KRW韓圓": 1370.36,
-    # Additional currencies can be added here
+    # 可以增加更多貨幣
 }
 
 def convert_currency(amount, from_currency, to_currency):
@@ -87,7 +86,7 @@ def get_financial_news():
 
 @app.route("/callback", methods=['POST'])
 def callback():
-    # Get request from LINE platform
+    # 獲取 LINE 平台傳來的請求
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
 
@@ -113,32 +112,6 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="請輸入金額，例如：100")
         )
-    elif text == "股票查詢":
-        user_states[user_id] = "stock_selection"
-        ask_stock(event.reply_token)
-    elif text == "股票資訊":
-       line_bot_api.reply_message(
-           event.reply_token,
-           TextSendMessage(text="請輸入股票代碼，例如：AAPL")
-       )
-       user_states[user_id] = "stock_info"
-    elif user_states.get(user_id) == "stock_info":
-        try:
-            stock_info = get_stock_info(text)
-            reply_message = (f"股票名稱: {stock_info['name']}\n"
-                          f"市場: {stock_info['market']}\n"
-                          f"行業: {stock_info['industry']}\n"
-                          f"市值: {stock_info['market_cap']}\n"
-                          f"股息率: {stock_info['dividend_yield']}")
-        except Exception as e:
-            reply_message = f"獲取股票資訊時出錯: {e}"
-    
-        line_bot_api.reply_message(
-           event.reply_token,
-           TextSendMessage(text=reply_message)
-        )
-        user_states[user_id] = None
-        
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
             amount = float(text)
@@ -170,7 +143,7 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=reply_text)
         )
-        # Reset state for next conversion
+        # 重置狀態以便下次重新開始匯率轉換
         user_states[user_id] = None
         user_scores[user_id] = {}
     elif text == "財經新聞":
@@ -216,13 +189,14 @@ def handle_postback(event):
             event.reply_token,
             TextSendMessage(text=reply_text)
         )
-        # Reset state for next conversion
+        # 重置狀態以便下次重新開始匯率轉換
         user_states[user_id] = None
         user_scores[user_id] = {}
 
     elif user_id not in user_scores:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
         return
+
     question_index = user_scores[user_id]["current_question"]
     if postback_data == questions[question_index]["answer"]:
         user_scores[user_id]["score"] += 1
@@ -244,7 +218,7 @@ def send_question(reply_token, user_id):
     options = questions[question_index]["options"]
 
     actions = [QuickReplyButton(action=PostbackAction(label=option, data=option[0])) for option in options]
-    quick_reply = QuickReply(items=actions[:4])  # LINE quick reply button limit
+    quick_reply = QuickReply(items=actions[:4])  # LINE quick reply 的按鈕限制
 
     line_bot_api.reply_message(
         reply_token,
@@ -254,37 +228,12 @@ def send_question(reply_token, user_id):
 def ask_currency(reply_token, text, prefix):
     currencies = list(exchange_rates.keys())
     actions = [QuickReplyButton(action=PostbackAction(label=currency, data=f"{prefix}={currency}")) for currency in currencies]
-    quick_reply = QuickReply(items=actions[:13])  # LINE quick reply button limit
+    quick_reply = QuickReply(items=actions[:13])  # LINE quick reply 有 13 個按鈕限制
     
     line_bot_api.reply_message(
         reply_token,
         TextSendMessage(text=text, quick_reply=quick_reply)
     )
-    
-def ask_stock(reply_token):
-    quick_reply_buttons = [
-        QuickReplyButton(action=MessageAction(label="Apple", text="AAPL")),
-        QuickReplyButton(action=MessageAction(label="Google", text="GOOGL")),
-        QuickReplyButton(action=MessageAction(label="Microsoft", text="MSFT")),
-        # Additional options can be added here
-    ]
-    quick_reply = QuickReply(items=quick_reply_buttons)
-    line_bot_api.reply_message(
-        reply_token,
-        TextSendMessage(text="請選擇或輸入股票代碼，例如：AAPL", quick_reply=quick_reply)
-    )
-
-def get_stock_info(ticker_symbol):
-    stock = yf.Ticker(ticker_symbol)
-    info = stock.info
-    stock_info = {
-        'name': info.get('longName', 'N/A'),
-        'market': info.get('market', 'N/A'),
-        'industry': info.get('industry', 'N/A'),
-        'market_cap': info.get('marketCap', 'N/A'),
-        'dividend_yield': info.get('dividendYield', 'N/A')
-    }
-    return stock_info
 
 def show_main_menu(reply_token):
     buttons_template = ButtonsTemplate(
@@ -293,8 +242,7 @@ def show_main_menu(reply_token):
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
             MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='財經新聞', text='財經新聞'),
-            MessageAction(label='股票查詢', text='股票查詢')
+            MessageAction(label='財經新聞', text='財經新聞')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
