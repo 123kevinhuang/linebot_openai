@@ -280,9 +280,3 @@ def show_main_menu(reply_token):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-    message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
-    line_bot_api.reply_message(reply_token, message)
-
-if __name__ == "__main__":
-    app.run(debug=True)
