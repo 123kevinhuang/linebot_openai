@@ -1,4 +1,5 @@
 import os
+import random
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -32,10 +33,6 @@ questions = [
     {"question": "9. 分散投資的主要目的是什麼？", "options": ["A) 增加收益", "B) 降低風險", "C) 節約成本", "D) 提高流動性"], "answer": "B"},
     {"question": "10. 什麼是財務報表中的資產負債表？", "options": ["A) 顯示公司的收益和支出", "B) 顯示公司的現金流量", "C) 顯示公司的財務狀況", "D) 顯示公司的所有者權益"], "answer": "C"},
 ]
-
-# 用戶回答情況記錄
-user_scores = {}
-user_states = {}
 
 # 固定匯率數據
 exchange_rates = {
@@ -118,9 +115,7 @@ def handle_message(event):
     text = event.message.text.strip()
 
     if text == "理財測驗":
-        user_scores[user_id] = {"score": 0, "current_question": 0}
-        user_states[user_id] = "quiz"
-        send_question(event.reply_token, user_id)
+        send_random_question(event.reply_token)
     elif text == "匯率轉換":
         user_states[user_id] = "currency_conversion_amount"
         line_bot_api.reply_message(
@@ -222,36 +217,14 @@ def handle_postback(event):
         user_states[user_id] = None
         user_scores[user_id] = {}
 
-    elif user_id not in user_scores:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
-        return
-
-    question_index = user_scores[user_id]["current_question"]
-    if postback_data == questions[question_index]["answer"]:
-        user_scores[user_id]["score"] += 1
-        response_text = "答對了！"
-    else:
-        response_text = f"答錯了，正確答案是：{questions[question_index]['answer']}"
-
-    user_scores[user_id]["current_question"] += 1
-    if user_scores[user_id]["current_question"] < len(questions):
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_text))
-        send_question(event.reply_token, user_id)
-    else:
-        final_score = user_scores[user_id]["score"]
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
-
-def send_question(reply_token, user_id):
-    question_index = user_scores[user_id]["current_question"]
-    question = questions[question_index]["question"]
-    options = questions[question_index]["options"]
-
-    actions = [QuickReplyButton(action=PostbackAction(label=option, data=option[0])) for option in options]
+def send_random_question(reply_token):
+    question = random.choice(questions)
+    actions = [QuickReplyButton(action=PostbackAction(label=option, data=option[0])) for option in question["options"]]
     quick_reply = QuickReply(items=actions[:4])  # LINE quick reply 的按鈕限制
 
     line_bot_api.reply_message(
         reply_token,
-        TextSendMessage(text=question, quick_reply=quick_reply)
+        TextSendMessage(text=question["question"], quick_reply=quick_reply)
     )
 
 def ask_currency(reply_token, text, prefix):
