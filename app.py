@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, send_file
+from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
@@ -9,8 +9,6 @@ from linebot.models import (
 import yfinance as yf
 import requests
 from bs4 import BeautifulSoup
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -101,24 +99,6 @@ def get_stock_info(ticker):
     except Exception as e:
         return f"無法獲取股票資訊: {str(e)}"
 
-def get_stock_chart(ticker):
-    try:
-        stock = yf.Ticker(ticker)
-        hist = stock.history(period="1mo")
-
-        plt.figure(figsize=(10, 5))
-        plt.plot(hist.index, hist['Close'], label='Close Price')
-        plt.xlabel('Date')
-        plt.ylabel('Close Price')
-        plt.title(f'{ticker} Stock Price (Last 1 Month)')
-        plt.legend()
-        chart_path = f'static/{ticker}_chart.png'
-        plt.savefig(chart_path)
-        plt.close()
-        return chart_path
-    except Exception as e:
-        return None
-
 @app.route("/callback", methods=['POST'])
 def callback():
     # 獲取 LINE 平台傳來的請求
@@ -202,21 +182,10 @@ def handle_message(event):
         )
     elif user_states.get(user_id) == "stock_info":
         stock_info = get_stock_info(text)
-        chart_path = get_stock_chart(text)
-        if chart_path:
-            line_bot_api.reply_message(
-                event.reply_token,
-                [
-                    TextSendMessage(text=stock_info),
-                    TextSendMessage(text="以下是最近一個月的股票價格圖表:"),
-                    TextSendMessage(text=request.url_root + chart_path)
-                ]
-            )
-        else:
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text="無法獲取股票圖表。")
-            )
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=stock_info)
+        )
         # 重置狀態以便下次重新查詢股票資訊
         user_states[user_id] = None
     else:
