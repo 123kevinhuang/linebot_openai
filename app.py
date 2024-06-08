@@ -53,6 +53,20 @@ exchange_rates = {
     # 可以增加更多貨幣
 }
 
+def get_stock_info(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        return (f"公司名稱: {info.get('longName', 'N/A')}\n"
+                f"市場價格: {info.get('currentPrice', 'N/A')}\n"
+                f"市值: {info.get('marketCap', 'N/A')}\n"
+                f"52週最高價: {info.get('fiftyTwoWeekHigh', 'N/A')}\n"
+                f"52週最低價: {info.get('fiftyTwoWeekLow', 'N/A')}\n"
+                f"市盈率(TTM): {info.get('trailingPE', 'N/A')}\n"
+                f"股息率: {info.get('dividendYield', 'N/A')}")
+    except Exception as e:
+        return f"無法獲取股票資訊: {str(e)}"
+
 def convert_currency(amount, from_currency, to_currency):
     if from_currency not in exchange_rates or to_currency not in exchange_rates:
         return None, "Unsupported currency"
@@ -100,7 +114,7 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
-    text = event.message.text.strip()
+    text = event.message.text.strip().upper()
 
     if text == "理財測驗":
         user_scores[user_id] = {"score": 0, "current_question": 0}
@@ -112,6 +126,16 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="請輸入金額，例如：100")
         )
+    elif text == "股票資訊":
+            if text.isalpha() and len(text) <= 5:  # 基本檢查是否為有效的股票代碼
+                stock_info = get_stock_info(text)
+            else:
+                stock_info = "請輸入有效的股票代號（例如AAPL）。"
+    
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=stock_info))
+
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
             amount = float(text)
@@ -242,7 +266,8 @@ def show_main_menu(reply_token):
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
             MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='財經新聞', text='財經新聞')
+            MessageAction(label='財經新聞', text='財經新聞'),
+            MessageAction(label='股票查詢', text='股票查詢')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
