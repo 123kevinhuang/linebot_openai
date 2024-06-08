@@ -274,6 +274,19 @@ def ask_currency(reply_token, text, prefix):
         TextSendMessage(text=text, quick_reply=quick_reply)
     )
 
+def ask_stock(reply_token):
+    quick_reply_buttons = [
+        QuickReplyButton(action=MessageAction(label="Apple", text="AAPL")),
+        QuickReplyButton(action=MessageAction(label="Google", text="GOOGL")),
+        QuickReplyButton(action=MessageAction(label="Microsoft", text="MSFT")),
+        # Additional options can be added here
+    ]
+    quick_reply = QuickReply(items=quick_reply_buttons)
+    line_bot_api.reply_message(
+        reply_token,
+        TextSendMessage(text="請選擇或輸入股票代碼，例如：AAPL", quick_reply=quick_reply)
+    )
+
 def show_main_menu(reply_token):
     buttons_template = ButtonsTemplate(
         title='主選單',
