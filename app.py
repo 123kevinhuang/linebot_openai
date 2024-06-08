@@ -180,7 +180,7 @@ def handle_message(event):
         user_states[user_id] = "stock_info"
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="請輸入股票代碼，例如："AAPL", "GOOGL", "MSFT", "AMZN", "FB")
+            TextSendMessage(text="請輸入股票代碼，例如：["AAPL", "GOOGL", "MSFT", "AMZN", "FB"])
         )
     elif user_states.get(user_id) == "stock_info":
         stock_info = get_stock_info(text)
