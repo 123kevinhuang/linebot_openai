@@ -196,6 +196,12 @@ def handle_postback(event):
     user_id = event.source.user_id
     postback_data = event.postback.data
 
+    # 检查用户是否在数据中
+    if user_id not in user_scores:
+        # 如果用户不在数据中，可能是因为他们没有进行过某些操作，或者数据已经被清除
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="请先开始某个操作，然后再试一次。"))
+        return
+
     if postback_data.startswith("from_currency"):
         currency = postback_data.split("=")[1]
         user_scores[user_id]["from_currency"] = currency
@@ -204,6 +210,12 @@ def handle_postback(event):
     elif postback_data.startswith("to_currency"):
         currency = postback_data.split("=")[1]
         user_scores[user_id]["to_currency"] = currency
+
+        # 检查用户是否已经输入了金额
+        if "amount" not in user_scores[user_id]:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="请输入金额"))
+            return
+
         amount = user_scores[user_id]["amount"]
         from_currency = user_scores[user_id]["from_currency"]
         to_currency = currency
@@ -240,6 +252,7 @@ def handle_postback(event):
     else:
         final_score = user_scores[user_id]["score"]
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
+
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
