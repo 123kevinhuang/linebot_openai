@@ -228,6 +228,26 @@ def handle_postback(event):
         user_states[user_id] = None
         user_scores[user_id] = {}
 
+    elif user_id not in user_scores:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入 '理財測驗' 來開始測驗。"))
+        return
+
+    question_index = user_scores[user_id]["current_question"]
+    if postback_data == questions[question_index]["answer"]:
+        user_scores[user_id]["score"] += 1
+        response_text = "答對了！"  # 添加提示消息
+    else:
+        response_text = f"答錯了，正確答案是：{questions[question_index]['answer']}"
+
+    user_scores[user_id]["current_question"] += 1
+    if user_scores[user_id]["current_question"] < len(questions):
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_text))
+        send_question(event.reply_token, user_id)
+    else:
+        final_score = user_scores[user_id]["score"]
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
+
+
 def send_random_question(reply_token):
     question = random.choice(questions)
     actions = [QuickReplyButton(action=PostbackAction(label=option, data=option[0])) for option in question["options"]]
