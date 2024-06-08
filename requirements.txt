@@ -4,5 +4,5 @@ gunicorn
 beautifulsoup4
 requests
 yfinance
-
+matplotlib
 
