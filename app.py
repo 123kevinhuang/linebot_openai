@@ -235,11 +235,10 @@ def handle_postback(event):
 
     user_scores[user_id]["current_question"] += 1
     if user_scores[user_id]["current_question"] < len(questions):
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_text))
         send_question(event.reply_token, user_id)
     else:
         final_score = user_scores[user_id]["score"]
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{response_text}\n測驗結束！你總共答對了 {final_score} 題。"))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"測驗結束！你總共答對了 {final_score} 題。"))
 
 def send_question(reply_token, user_id):
     question_index = user_scores[user_id]["current_question"]
@@ -280,5 +279,3 @@ def show_main_menu(reply_token):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
