@@ -6,6 +6,7 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, PostbackEvent, PostbackAction,
     QuickReply, QuickReplyButton, MessageAction, ButtonsTemplate, TemplateSendMessage
 )
+import yfinance as yf
 import requests
 from bs4 import BeautifulSoup
 
@@ -84,6 +85,20 @@ def get_financial_news():
     
     return news_links[:5]
 
+def get_stock_info(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        return (f"公司名稱: {info.get('longName', 'N/A')}\n"
+                f"市場價格: {info.get('currentPrice', 'N/A')}\n"
+                f"市值: {info.get('marketCap', 'N/A')}\n"
+                f"52週最高價: {info.get('fiftyTwoWeekHigh', 'N/A')}\n"
+                f"52週最低價: {info.get('fiftyTwoWeekLow', 'N/A')}\n"
+                f"市盈率(TTM): {info.get('trailingPE', 'N/A')}\n"
+                f"股息率: {info.get('dividendYield', 'N/A')}")
+    except Exception as e:
+        return f"無法獲取股票資訊: {str(e)}"
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # 獲取 LINE 平台傳來的請求
@@ -159,6 +174,20 @@ def handle_message(event):
                 event.reply_token,
                 TextSendMessage(text="抱歉，無法獲取財經新聞。")
             )
+    elif text == "股票資訊":
+        user_states[user_id] = "stock_info"
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="請輸入股票代碼，例如：AAPL")
+        )
+    elif user_states.get(user_id) == "stock_info":
+        stock_info = get_stock_info(text)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=stock_info)
+        )
+        # 重置狀態以便下次重新查詢股票資訊
+        user_states[user_id] = None
     else:
         show_main_menu(event.reply_token)
 
@@ -242,7 +271,8 @@ def show_main_menu(reply_token):
         actions=[
             MessageAction(label='理財測驗', text='理財測驗'),
             MessageAction(label='匯率轉換', text='匯率轉換'),
-            MessageAction(label='財經新聞', text='財經新聞')
+            MessageAction(label='財經新聞', text='財經新聞'),
+            MessageAction(label='股票資訊', text='股票資訊')
         ]
     )
     message = TemplateSendMessage(alt_text='主選單', template=buttons_template)
@@ -250,4 +280,5 @@ def show_main_menu(reply_token):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
