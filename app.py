@@ -34,6 +34,10 @@ questions = [
     {"question": "10. 什麼是財務報表中的資產負債表？", "options": ["A) 顯示公司的收益和支出", "B) 顯示公司的現金流量", "C) 顯示公司的財務狀況", "D) 顯示公司的所有者權益"], "answer": "C"},
 ]
 
+# 用戶回答情況記錄
+user_scores = {}
+user_states = {}
+
 # 固定匯率數據
 exchange_rates = {
     "USD美金": 1,
