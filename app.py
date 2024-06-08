@@ -203,6 +203,13 @@ def handle_postback(event):
     elif postback_data.startswith("to_currency"):
         currency = postback_data.split("=")[1]
         user_scores[user_id]["to_currency"] = currency
+        # 檢查是否存在金額信息
+        if "amount" not in user_scores[user_id]:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text="請先輸入金額")
+            )
+            return
         amount = user_scores[user_id]["amount"]
         from_currency = user_scores[user_id]["from_currency"]
         to_currency = currency
