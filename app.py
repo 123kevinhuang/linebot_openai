@@ -92,6 +92,8 @@ def get_stock_info(ticker):
         return (f"公司名稱: {info.get('longName', 'N/A')}\n"
                 f"市場價格: {info.get('currentPrice', 'N/A')}\n"
                 f"市值: {info.get('marketCap', 'N/A')}\n"
+                f"行業: {info.get('industry','N/A')}\n"
+                f"現價: {info.get('currentPrice')}\n"
                 f"52週最高價: {info.get('fiftyTwoWeekHigh', 'N/A')}\n"
                 f"52週最低價: {info.get('fiftyTwoWeekLow', 'N/A')}\n"
                 f"市盈率(TTM): {info.get('trailingPE', 'N/A')}\n"
