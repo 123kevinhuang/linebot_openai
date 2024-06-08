@@ -126,15 +126,30 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="請輸入金額，例如：100")
         )
+   
     elif text == "股票資訊":
-            if text.isalpha() and len(text) <= 5:  # 基本檢查是否為有效的股票代碼
-                stock_info = get_stock_info(text)
-            else:
-                stock_info = "請輸入有效的股票代號（例如AAPL）。"
+       line_bot_api.reply_message(
+           event.reply_token,
+           TextSendMessage(text="請輸入股票代碼，例如：AAPL")
+       )
+       user_states[user_id] = "stock_info"
+    elif user_states.get(user_id) == "stock_info":
+        try:
+            stock_info = get_stock_info(text)
+            reply_message = (f"股票名稱: {stock_info['name']}\n"
+                          f"市場: {stock_info['market']}\n"
+                          f"行業: {stock_info['industry']}\n"
+                          f"市值: {stock_info['market_cap']}\n"
+                          f"股息率: {stock_info['dividend_yield']}")
+        except Exception as e:
+            reply_message = f"獲取股票資訊時出錯: {e}"
     
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=stock_info))
+        line_bot_api.reply_message(
+           event.reply_token,
+           TextSendMessage(text=reply_message)
+        )
+        user_states[user_id] = None
+        
 
     elif user_states.get(user_id) == "currency_conversion_amount":
         try:
